@@ -1,10 +1,10 @@
-# Installation
+## Installation
 
 The scraper is only known to work on Linux. It can probably be made to work in Windows too, but I haven't tried it. Patches welcome.
 
 No installation is required.
 
-# Basic usage: downloading all your answers
+## Basic usage: downloading all your answers
 
 To view all your answers, go to the answers section of [Your Content](https://www.quora.com/content?content_types=answers) and scroll all the way down until there are no more answers to load.
 
@@ -38,7 +38,7 @@ replacing `${TIMESTAMP}` with the timestamp value previously obtained from the b
 
 This creates a new directory, `/home/brian/quora-answers`, and populates it with the answers specified, after downloading them from Quora. It also generates a timestamp in YYYY-MM-DD format for each answer.
 
-# Converting answers to a standalone format
+## Converting answers to a standalone format
 
 The converter can be run as follows:
 
@@ -46,11 +46,11 @@ The converter can be run as follows:
 
 This creates the directory `/home/brian/quora-answers-cooked` and copies each answer downloaded into `/home/brian/quora-answers` into the new directory after processing it to remove everything other than the answer content itself. If this step succeeds, then the answer will still be readable even if Quora disappears from the face of the Web.
 
-# What the crawler does
+## What the crawler does
 
 The crawler is pretty simple: its job is to download the URLs you provide. But it also has a slightly nontrivial task, which is to determine the date on which each answer was written (give or take a day). This is done by reading the timestamps provided on the Your Content page itself. But the more recent timestamps given are relative, not absolute (for example, "Fri" if you wrote answer last Friday). That's why the crawler needs to be told at what time you accessed that page and in what time zone, so it can resolve those strings into absolute dates.
 
-# What the converter does
+## What the converter does
 
 The converter has three main functions:
 
@@ -59,7 +59,7 @@ The converter has three main functions:
 all hosted on Quora's servers; after running the converter, you'll have a copy on local disk, so you'll still be able to view the images even if Quora disappears. (This functionality can be disabled using the `-n` flag.)
 3. It removes extraneous HTML elements and attributes, simplifying the HTML as much as possible.
 
-# FAQ
+## FAQ
 
 **Why did you write your own Quora backup tool when there are already a zillion of them?**
 
@@ -77,7 +77,7 @@ It depends on how many answers you're downloading. If it's less than a thousand,
 
 Because I want to make sure that all changes get merged back into my repository. There is a very good reason for this: there is only one Quora, and they'll probably change the way they generate HTML, which means this software will periodically stop working properly. I want to maintain a single version that's fully up to date with all the patches other people submit, rather than having multiple versions running around with patches for different kinds of elements.
 
-# Errors and bugs
+## Errors and bugs
 A message starting with [FATAL] signals that the script cannot function at all. [ERROR] means that processing of a single answer was aborted due to an unrecoverable error; [WARNING] means an error condition arose which prevented some feature from working properly but did not abort the processing of an answer. If you run with the `-v` flag, you'll also see [DEBUG] messages.
 
 The converter will emit a [WARNING] message if it doesn't understand the HTML found in the answer. I have tested the converter against my entire set of answers, so I believe that as of the time of this release, this should never happen. But the format of Quora's HTML is likely to change in the future, which means the converter will stop working properly. If this happens, you're likely to see [WARNING] messages. Those should be reported.
