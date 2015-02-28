@@ -1,8 +1,10 @@
 ## Installation
 
-The scraper is only known to work on Linux. It can probably be made to work in Windows too, but I haven't tried it. Patches welcome.
+You need Python 3, version 3.2 or higher, with the `html5lib` library installed. Pick up a copy [here](https://github.com/html5lib/html5lib-python).
 
-No installation is required.
+This software is only known to work on Linux. It can probably be made to work in Windows too, but I haven't tried it. Patches welcome.
+
+No installation is required, but make sure that `converter.py` and `crawler.py` are executable. (Or you can just run them by invoking `python3` explicitly.)
 
 ## Basic usage: downloading all your answers
 
