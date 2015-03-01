@@ -229,7 +229,7 @@ for filename in filenames:
     # Get the HTML element containing just the answer itself.
     # Also get the title.
     parser = HTMLParser(tree=treebuilders.getTreeBuilder('dom'))
-    document = parser.parse(page_html)
+    document = parser.parse(page_html, encoding='utf-8')
     title_node = get_title_node(document) 
     log_if_v('Title: ' + ('(could not be determined)' if title_node is None else get_text_content(title_node)))
 
