@@ -108,8 +108,9 @@ def cleanup_tree(doc, src, dest):
             dest.appendChild(new_node)
             cleanup_tree(doc, child, new_node)
         elif child.tagName == 'img':
-            is_math = 'math' in child.getAttribute('class')
-            src = child.getAttribute('src') if is_math else child.getAttribute('master_src')
+            src = child.getAttribute('master_src')
+            if src == '':
+                src = child.getAttribute('src')
             new_node = doc.createElement('img')
             new_node.setAttribute('src', src)
             new_node.setAttribute('alt', child.getAttribute('alt'))
