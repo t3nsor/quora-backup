@@ -141,10 +141,18 @@ for e in answers:
         print('[ERROR] Could not find question part of URL %s; skipping' % url, file=sys.stderr)
         continue
     # Trim the filename if it's too long. 255 bytes is the limit on many filesystems.
-    total_length = len(filename + '.html')
-    if len(filename + '.html') > 255:
-        filename = filename[:(255 - len(filename + '.html'))]
-        log_if_v('Filename was truncated to 255 characters.')
+    total_byte_length = len(bytes(filename + '.html', encoding="utf-8"))
+    filename_bytes = bytes(filename, encoding="utf-8")
+    if total_byte_length > 255:
+        filename_bytes = filename_bytes[:255-total_byte_length]
+        well_formed = False
+        while not well_formed:
+            try:
+                filename = str(filename_bytes, encoding="utf-8")
+                well_formed = True
+            except UnicodeDecodeError:
+                filename_bytes = filename_bytes[:-1]
+        log_if_v('Filename was truncated to at most 255 bytes.')
     filename += '.html'
     log_if_v('Filename: %s' % filename)
 
