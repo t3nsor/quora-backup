@@ -33,6 +33,7 @@ def parse_quora_date(origin, quora_str):
     m5 = re.match('(\d+) (' + '|'.join(months_of_year) + '), (\d+)$', date_str)
     m6 = re.match('12am', date_str)
     if not m0 is None or not m6 is None:
+        # Using origin for 12am since the time of the day will be discarded anyway
         tm = time.gmtime(origin)
     elif not m1 is None:
         tm = time.gmtime(origin - 60*int(m1.group(1)))
