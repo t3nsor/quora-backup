@@ -25,13 +25,15 @@ def parse_quora_date(origin, quora_str):
     date_str = date_str.strip()
     if date_str == '':
         raise ValueError('"%s" does not appear to indicate when answer was added' % quora_str)
-    m0 = re.match('just now$', date_str) 
+    m0 = re.match('just now$', date_str)
     m1 = re.match('(\d+)m ago$', date_str)
     m2 = re.match('(\d+)h ago$', date_str)
     m3 = re.match('(' + '|'.join(days_of_week) + ')$', date_str)
     m4 = re.match('(\d+) (' + '|'.join(months_of_year) + ')$', date_str)
-    m5 = re.match('(\d+) (' + '|'.join(months_of_year) + '), (\d+)$', date_str)
-    if not m0 is None:
+    m5 = re.match('(\d+) (' + '|'.join(months_of_year) + ') (\d+)$', date_str)
+    m6 = re.match('(\d+)[ap]m$', date_str)
+    if not m0 is None or not m6 is None:
+        # Using origin for time in am / pm since the time of the day will be discarded anyway
         tm = time.gmtime(origin)
     elif not m1 is None:
         tm = time.gmtime(origin - 60*int(m1.group(1)))
@@ -62,7 +64,7 @@ def parse_quora_date(origin, quora_str):
             raise ValueError('date "%s" is invalid' % date_str)
     elif not m5 is None:
         # may raise ValueError
-        tm = time.strptime(date_str, '%d %b, %Y')
+        tm = time.strptime(date_str, '%d %b %Y')
     else:
         raise ValueError('date "%s" could not be interpreted' % date_str)
     return '%d-%02d-%02d' % (tm.tm_year, tm.tm_mon, tm.tm_mday)
@@ -72,7 +74,7 @@ parser.add_argument('input_file', help='file containing JSON-encoded list of tim
 parser.add_argument('output_dir', nargs='?', default='./quora-answers', help='where to store the downloaded answers and images')
 parser.add_argument('-d', '--delay', default=0, type=float, help='Time to sleep between answers, in seconds')
 parser.add_argument('-t', '--origin_timestamp', default=None, type=int, help='JS time when the list of URLs was fetched')
-parser.add_argument('-z', '--origin_timezone', default=None, type=int, help='browser timezone') 
+parser.add_argument('-z', '--origin_timezone', default=None, type=int, help='browser timezone')
 parser.add_argument('-v', '--verbose', action='store_true', help='enable debug messages')
 
 global args
