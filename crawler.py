@@ -76,6 +76,7 @@ parser.add_argument('-d', '--delay', default=0, type=float, help='Time to sleep 
 parser.add_argument('-t', '--origin_timestamp', default=None, type=int, help='JS time when the list of URLs was fetched')
 parser.add_argument('-z', '--origin_timezone', default=None, type=int, help='browser timezone')
 parser.add_argument('-v', '--verbose', action='store_true', help='enable debug messages')
+parser.add_argument('-o', '--overwrite', action='store_true', help='Overwrite existing answers')
 
 global args
 args = parser.parse_args()
@@ -116,7 +117,7 @@ except OSError as error:
         # This is the top level, and we have nothing else to do if we failed
         raise
 os.chdir(args.output_dir)
-
+download_file_count = 0
 for e in answers:
     sys.stderr.flush()
     url = e[0]
@@ -150,18 +151,22 @@ for e in answers:
     filename += '.html'
     log_if_v('Filename: %s' % filename)
 
-    # Fetch the URL to find the answer
-    log_if_v('Downloading answer from URL %s' % url)
-    try:
-        page_html = urllib.request.urlopen(url).read()
-        with open(filename, 'wb') as f:
-            f.write(page_html)
-    except urllib.error.URLError as error:
-        print('[ERROR] Failed to download answer from URL %s (%s)' % (url, error.reason), file=sys.stderr)
-        continue
-    except IOError as error:
-        print('[ERROR] Failed to save answer to file %s (%s)' % (filename, error.strerror), file=sys.stderr)
+    if args.overwrite or not os.path.isfile(filename):
+        # Fetch the URL to find the answer
+        log_if_v('Downloading answer from URL %s' % url)
+        try:
+            page_html = urllib.request.urlopen(url).read()
+            with open(filename, 'wb') as f:
+                f.write(page_html)
+        except urllib.error.URLError as error:
+            print('[ERROR] Failed to download answer from URL %s (%s)' % (url, error.reason), file=sys.stderr)
+            continue
+        except IOError as error:
+            print('[ERROR] Failed to save answer to file %s (%s)' % (filename, error.strerror), file=sys.stderr)
 
-    time.sleep(args.delay)
+        download_file_count += 1
+        time.sleep(args.delay)
+    else:
+        log_if_v('Answer File : %s Already Exists. Skipping' % filename)
 
-print('Done', file=sys.stderr)
+print('Done. Downloaded %d files' % download_file_count, file=sys.stderr)
