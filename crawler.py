@@ -151,6 +151,7 @@ for e in answers:
     filename += '.html'
     log_if_v('Filename: %s' % filename)
 
+    # If overwrite is enabled or the answer doesn't exist
     if args.overwrite or not os.path.isfile(filename):
         # Fetch the URL to find the answer
         log_if_v('Downloading answer from URL %s' % url)
