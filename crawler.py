@@ -29,8 +29,8 @@ def parse_quora_date(origin, quora_str):
     m1 = re.match('(\d+)m ago$', date_str)
     m2 = re.match('(\d+)h ago$', date_str)
     m3 = re.match('(' + '|'.join(days_of_week) + ')$', date_str)
-    m4 = re.match('(\d+) (' + '|'.join(months_of_year) + ')$', date_str)
-    m5 = re.match('(\d+) (' + '|'.join(months_of_year) + ') (\d+)$', date_str)
+    m4 = re.match('(' + '|'.join(months_of_year) + ') (\d+)$', date_str)
+    m5 = re.match('(' + '|'.join(months_of_year) + ') (\d+), (\d+)$', date_str)
     m6 = re.match('(\d+)[ap]m$', date_str)
     if not m0 is None or not m6 is None:
         # Using origin for time in am / pm since the time of the day will be discarded anyway
@@ -52,8 +52,8 @@ def parse_quora_date(origin, quora_str):
             raise ValueError('date "%s" is invalid' % date_str)
     elif not m4 is None:
         # Walk backward until we reach the given month and year
-        month_of_year = months_of_year.index(m4.group(2)) + 1
-        day_of_month = int(m4.group(1))
+        month_of_year = months_of_year.index(m4.group(1)) + 1
+        day_of_month = int(m4.group(2))
         offset = 1
         while offset <= 366:
             tm = time.gmtime(origin - 86400*offset)
@@ -64,7 +64,7 @@ def parse_quora_date(origin, quora_str):
             raise ValueError('date "%s" is invalid' % date_str)
     elif not m5 is None:
         # may raise ValueError
-        tm = time.strptime(date_str, '%d %b %Y')
+        tm = time.strptime(date_str, '%b %d, %Y')
     else:
         raise ValueError('date "%s" could not be interpreted' % date_str)
     return '%d-%02d-%02d' % (tm.tm_year, tm.tm_mon, tm.tm_mday)
