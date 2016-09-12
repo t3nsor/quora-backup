@@ -230,7 +230,7 @@ for filename in filenames:
     # Get the HTML element containing just the answer itself.
     # Also get the title.
     parser = HTMLParser(tree=treebuilders.getTreeBuilder('dom'))
-    document = parser.parse(page_html, encoding='utf-8')
+    document = parser.parse(page_html, default_encoding='utf-8')
     title_node = get_title_node(document) 
     log_if_v('Title: ' + ('(could not be determined)' if title_node is None else get_text_content(title_node)))
 
@@ -272,9 +272,9 @@ for filename in filenames:
     # Okay! Finally, save the HTML.
     walker = treewalkers.getTreeWalker('dom')(new_page)
     try:
-        with open(args.output_dir + '/' + filename, 'w', 0o600) as saved_page:
-            saved_page.write('<!DOCTYPE html>')
-            saved_page.write(serializer.htmlserializer.HTMLSerializer(omit_optional_tags=False).render(walker))
+        with open(args.output_dir + '/' + filename, 'wb', 0o600) as saved_page:
+            saved_page.write(b'<!DOCTYPE html>')
+            saved_page.write(serializer.serialize(new_page, 'dom', 'utf-8', omit_optional_tags=False))
     except IOError as error:
         print('[ERROR] Failed to save to file %s (%s)' % (filename, error.strerror), file=sys.stderr)
 
