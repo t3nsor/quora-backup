@@ -96,7 +96,7 @@ origin = args.origin_timestamp - args.origin_timezone
 
 # Load the list of answer URLs from the input file.
 log_if_v('Loading input file %s' % args.input_file)
-with open(args.input_file, 'r') as input_file:
+with open(args.input_file, 'rb') as input_file:
     answers = json.load(input_file)
 print('Found %d answers' % len(answers), file=sys.stderr)
 
