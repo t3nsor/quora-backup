@@ -12,7 +12,7 @@ To view all your answers, go to the answers section of [Your Content](https://ww
 
 Type the following into your browser's URL bar:
 
-`javascript:window.open().document.write(JSON.stringify(Array.prototype.map.call($('.UserContentList .pagedlist_item'), function (e) { return [$(e).find('a')[0].href, $(e).find('.metadata').text()] })))`
+    javascript:window.open().document.write(JSON.stringify(Array.prototype.map.call(document.querySelectorAll('.UserContentList .pagedlist_item'), function (e) { return [e.getElementsByTagName('a')[0].href, e.getElementsByClassName('metadata')[0].innerHTML] })))
 
 **Note:** You can copy and paste the code above, but your browser might automatically remove the `javascript:` prefix from the URL when you do so. If that happens, you'll have to type in the `javascript:` part yourself. Alternatively, you can just use the browser console to execute the javascript code.
 
