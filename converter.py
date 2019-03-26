@@ -27,16 +27,9 @@ def get_text_content(node):
     return text
 
 # The HTML can mostly be saved as-is. The main changes we want to make are:
-# 1) Remove extraneous <span>s
+# 1) Remove most <span>s and attributes since they are not needed anymore.
 # 2) Rewrite relative paths ("/Brian-Bi") to full URLs
-# 3) Download a copy of each embedded image, including LaTeX.
-# 4) Convert Quora's code blocks into actual <code> tags. This is the trickiest
-# task of all, because we want to handle both inline and block, and preserve
-# the original highlighting.
-#
-# We won't actually attempt to "decompile" the HTML into the representation
-# typed into the answer editor, because if Quora disappears, there won't be
-# anything to interpret that anyway.
+# 3) Download a copy of each embedded image
 def cleanup_tree(doc, src, dest):
     for child in src.childNodes:
         if child.nodeType == Node.TEXT_NODE:
@@ -49,8 +42,9 @@ def cleanup_tree(doc, src, dest):
         # Otherwise, it's an element node.
         if child.tagName in ['br', 'hr']:
             dest.appendChild(child.cloneNode(False))
-        elif child.tagName in ['b', 'i', 'u', 'h2', 'ol', 'ul', 'li', 'blockquote', 'wbr']:
+        elif child.tagName in ['b', 'i', 'u', 'h2', 'ol', 'ul', 'li', 'blockquote', 'wbr', 'p']:
             # This node doesn't need to be modified but its children might.
+            # Also, we won't copy over any of its attributes.
             new_node = doc.createElement(child.tagName)
             cleanup_tree(doc, child, new_node)
             dest.appendChild(new_node)
@@ -77,27 +71,17 @@ def cleanup_tree(doc, src, dest):
                 print('[WARNING] Failed to parse video embed code', file=sys.stderr)
                 # Bail out by just copying the original HTML
                 dest.appendChild(child.cloneNode(True))
-        elif 'inline_codeblock' in child.getAttribute('class'):
-            # Inline codeblock. Simply replace this with a <code>.
-            try:
-                # div > pre > span > (text)
-                span = child.firstChild.firstChild
-                if span.tagName != 'span':
-                    raise ValueError()
-                code_element = doc.createElement('code')
-                code_element.appendChild(doc.createTextNode(get_text_content(span)))
-                dest.appendChild(code_element)
-            except ValueError:
-                print('[WARNING] Failed to parse inline codeblock', file=sys.stderr)
-                # Bail out by just copying the original HTML
-                dest.appendChild(child.cloneNode(True))
+        elif child.tagName == 'code':
+            # Inline code block. Strip the attributes.
+            new_node = doc.createElement('code')
+            dest.appendChild(new_node)
+            cleanup_tree(doc, child, new_node)
         elif 'ContentFooter' in child.getAttribute('class') or 'hidden' in child.getAttribute('class'):
             # These are nodes we just want to skip.
             continue
         elif child.tagName in ['span', 'div']:
             # don't insert a span or div; just insert its contents
             cleanup_tree(doc, child, dest)
-        # The remaining cases are: link, image (incl. math), and block code.
         elif child.tagName == 'a':
             # A link. We only want to copy the href, and pass the rest through.
             new_node = doc.createElement('a')
@@ -165,26 +149,12 @@ def cleanup_tree(doc, src, dest):
                 print('[WARNING] Failed to determine image name from URL %s' % src, file=sys.stderr)
             finally:
                 dest.appendChild(new_node)
-        elif 'codeblocktable' in child.getAttribute('class'):
-            # Block (not inline) code. This should become <pre><code>...</code></pre>
-            try:
-                pre_node = doc.createElement('pre')
-                # Each div inside is a line.
-                code_node = doc.createElement('code')
-                divs = child.getElementsByTagName('div')
-                lines = []
-                for div in divs:
-                    # All the code is inside spans.
-                    spans = div.getElementsByTagName('span')
-                    line = ''.join([get_text_content(span) for span in spans])
-                    lines.append(line)
-                text_node = doc.createTextNode('\n'.join(lines))
-                code_node.appendChild(text_node)
-                pre_node.appendChild(code_node)
-                dest.appendChild(pre_node)
-            except Exception:
-                print('[WARNING] Failed to parse code block', file=sys.stderr)
-                dest.appendChild(child.cloneNode(True))
+        elif child.tagName == 'pre':
+            # Block (not inline) code. Quora's HTML already has the desired <pre><code> structure,
+            # so we just need to strip the attributes from the <pre>.
+            new_node = doc.createElement('pre')
+            dest.appendChild(new_node)
+            cleanup_tree(doc, child, new_node)
         else:
             print('[WARNING] Unrecognized node', file=sys.stderr)
             # Bail out by just copying the original HTML
@@ -264,6 +234,16 @@ for filename in filenames:
     style_node.setAttribute('type', 'text/css')
     style_node.appendChild(document.createTextNode(css))
     head_node.appendChild(style_node)
+    # Quora now uses MathJax, so set up the configuration object:
+    script_node = document.createElement('script')
+    script_text = document.createTextNode('window.MathJax = {"showMathMenu":false,"messageStyle":"none","errorSettings":{"style":{"color":"#000000","font-style":"normal"}},"HTML-CSS":{"linebreaks":{"automatic":true,"width":"container"},"EqnChunk":150,"EqnChunkDelay":20},"tex2jax":{"inlineMath":[["[math]","[/math]"]],"displayMath":[],"ignoreClass":"edit_latex|qtext_editor_content|ignore_latex","processClass":"render_latex","processEnvironments":false,"preview":"none"},"TeX":{"noUndefined":{"attributes":{"mathcolor":"red"}},"noErrors":{"multiLine":true,"style":{"max-width":"100%","overflow":"hidden"}},"Macros":{"C":"{\\mathbb{C}}","N":"{\\mathbb{N}}","O":"{\\emptyset}","Q":"{\\mathbb{Q}}","R":"{\\mathbb{R}}","Z":"{\\mathbb{Z}}"}},"fast-preview":{"disabled":true},"Safe":{"allow":{"URLs":"none","classes":"none","cssIDs":"none","styles":"none","fontsize":"none","require":"none"}}};')
+    script_node.appendChild(script_text)
+    head_node.appendChild(script_node)
+    # and then load MathJax:
+    script_node = document.createElement('script')
+    script_node.setAttribute('type', 'text/javascript')
+    script_node.setAttribute('src', 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML,Safe')
+    head_node.appendChild(script_node)
     new_page.appendChild(head_node)
     body_node = document.createElement('body')
     # This step processes Quora's HTML into a more lightweight and portable form.
