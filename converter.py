@@ -207,13 +207,10 @@ for filename in filenames:
     answer_node = None
     for node in document.getElementsByTagName('div'):
         if 'ExpandedAnswer' in node.getAttribute('class').split():
-            try:
-                answer_node = node
-            except Exception:
-                pass
+            answer_node = node
             break
     if answer_node is None:
-        print('[WARNING] Failed to locate answer on page (Source URL was %s)' % url, file=sys.stderr)
+        print('[WARNING] Failed to locate answer on page (filename: %s)' % filename, file=sys.stderr)
         continue
 
     # Construct our new page...
